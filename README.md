@@ -19,7 +19,7 @@ This project establishes a robust and automated continuous integration and conti
 
 - **Dockerfile:** This file defines the instructions for building your application's Docker image, specifying the base image, dependencies, and application code to be included.
 - **docker-compose.yml:** If your application involves multiple containers, this file defines the services, configurations, and dependencies for running them together using Docker Compose.
-- 
+  
 ### Setting Up Jenkins:
 
 **Establishing Jenkins Infrastructure on AWS:**
@@ -92,6 +92,8 @@ This stage involves building a Docker image of the application and pushing it to
             }
         }
 ```
+![AWS ECR](aws-ecr.png)
+
    **`Deploy` Stage:**
    
 This stage deploys the application to an EC2 instance by copying necessary files and executing a deployment script using SSH and executing docker-compose.  
