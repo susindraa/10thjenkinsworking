@@ -1,12 +1,19 @@
-# Building a Robust CI/CD Pipeline with Jenkins, Maven, ECR, and Docker Compose
+# Automated CI/CD Pipeline with Jenkins, Maven, ECR, and Docker Compose
 
 In today's fast-paced software development world, continuous integration and continuous delivery (CI/CD) pipelines are essential for rapid development, improved code quality, and efficient deployments. This blog post will guide you through building a robust CI/CD pipeline using Jenkins, Maven, Amazon Elastic Container Registry (ECR), and Docker Compose.
 
 ![Jenkins Pipeline Stages](jenkins_pipeline_stages.png)
 
-**Tools Uses:** Git, Java, Maven, Jenkins, AWS, ECR, EC2, Docker, Docker-Compose, Ubuntu
+**Project Description:**
 
-## Project Structure:
+This project establishes a robust and automated continuous integration and continuous delivery (CI/CD) pipeline for streamlined software development and deployment. It leverages the following key technologies:
+
+-   **Jenkins:**  A popular open-source automation server at the core of the pipeline, orchestrating the entire build, test, and deployment process.
+-   **Maven:**  A mature build automation tool for Java projects, efficiently managing dependencies, compilation, testing, and packaging.
+-   **Amazon Elastic Container Registry (ECR):**  A secure container image registry service by AWS, providing a central repository for storing and managing Docker images.
+-   **Docker Compose:**  A tool for defining and running multi-container applications with ease, simplifying the deployment of applications composed of multiple interconnected containers.
+
+### Project Structure:
 - **Source Code Repository:** This will reside in a Git repository from GitHub or GirLab. It will hold the application's source code and any relevant configuration files.
 - **Jenkins Pipeline Script:** This script defines the stages of your CI/CD pipeline and triggers specific actions within Jenkins.
 
@@ -140,6 +147,8 @@ In this final stage, the version update is committed to the Git repository, clos
 ```
 
 **Jenkins Plugin uses:** Amazon EC2, SSH Agent, Maven
+
+**Tools Uses:** Git, Java, Maven, Jenkins, AWS, ECR, EC2, Docker, Docker-Compose, Ubuntu
 
 Sample Example Environment: 
 ```
