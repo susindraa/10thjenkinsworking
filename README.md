@@ -2,7 +2,7 @@
 
 In today's fast-paced software development world, continuous integration and continuous delivery (CI/CD) pipelines are essential for rapid development, improved code quality, and efficient deployments. This blog post will guide you through building a robust CI/CD pipeline using Jenkins, Maven, Amazon Elastic Container Registry (ECR), and Docker Compose.
 
-![Jenkins Pipeline Stages](.jenkins-pipeline-stages.png)
+![Jenkins Pipeline Stages](jenkins_pipeline_stages.png)
 
 **Tools Uses:** Git, Java, Maven, Jenkins, AWS, ECR, EC2, Docker, Docker-Compose, Ubuntu
 
