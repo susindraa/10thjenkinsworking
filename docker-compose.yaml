@@ -1,0 +1,6 @@
+version: '3.8'
+services:
+    simple-pipeline-app:
+      image: ${IMAGE}
+      ports:
+        - 8080:8080
