@@ -22,12 +22,11 @@ pipeline {
             steps {
                 script {
                     echo 'incrementing app version...'
-                    bat "mvn build-helper:parse-version versions:set -DnewVersion=${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.nextIncrementalVersion} versions:commit"
-'
+                    bat "mvn build-helper:parse-version versions:set -DnewVersion=\${parsedVersion.majorVersion}.\${parsedVersion.minorVersion}.\${parsedVersion.nextIncrementalVersion} versions:commit"
                     def matcher = readFile('pom.xml') =~ '<version>(.+)</version>'
                     def version = matcher[0][1]
                     env.IMAGE_NAME = "$version-$BUILD_NUMBER"
-                    echo "############ ${IMAGE_REPO}"
+                    echo "############ ${IMAGE_REPO}:${IMAGE_NAME}"
                 }
             }
         }
@@ -48,7 +47,7 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: 'aws-ecr', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
                         bat "docker build -t ${IMAGE_REPO}:${IMAGE_NAME} ."
                         bat "echo $PASS | docker login -u $USER --password-stdin ${ECR_REPO_URL}"
-                        bat "docker pubat ${IMAGE_REPO}:${IMAGE_NAME}"
+                        bat "docker push ${IMAGE_REPO}:${IMAGE_NAME}"  // ✅ FIXED: was `docker pubat`
                     }
                 }
             }
@@ -57,14 +56,13 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    // def ec2Instance = 'ubuntu@107.20.79.59'
                     def ec2Instance = "$SERVER_INSTANCE_USER@$SERVER_INSTANCE_IP"
-                    def deployCmd = "babat ./web-deploy.bat ${IMAGE_NAME}"
+                    def deployCmd = "bash ./web-deploy.bat ${IMAGE_NAME}"
 
-                    sbatagent(['web-server-key']) {
+                    sshagent(['web-server-key']) {  // ✅ FIXED: was `sbatagent`
                         bat "scp -o StrictHostKeyChecking=no web-deploy.bat ${ec2Instance}:/home/ubuntu"
                         bat "scp -o StrictHostKeyChecking=no docker-compose.yaml ${ec2Instance}:/home/ubuntu"
-                        bat "sbat -o StrictHostKeyChecking=no ${ec2Instance} ${deployCmd}"
+                        bat "ssh -o StrictHostKeyChecking=no ${ec2Instance} '${deployCmd}'"  // ✅ FIXED: was `sbat`
                     }
                 }
             }
@@ -79,7 +77,7 @@ pipeline {
                         bat "git remote set-url origin https://${GITHUB_TOKEN}@$GIT_REPO_URL"
                         bat 'git add .'
                         bat 'git commit -m "ci: version bump"'
-                        bat 'git pubat origin HEAD:main'
+                        bat 'git push origin HEAD:main'  // ✅ FIXED: was `git pubat`
                     }
                 }
             }
