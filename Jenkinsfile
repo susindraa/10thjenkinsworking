@@ -17,6 +17,7 @@ pipeline {
     }
 
     stages {
+
         stage('Checkout') {
             steps {
                 checkout scm
@@ -27,11 +28,18 @@ pipeline {
             steps {
                 script {
                     echo '🔧 Incrementing app version...'
-                    bat '''
-                        mvn build-helper:parse-version versions:set \
-                          -DnewVersion=${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.nextIncrementalVersion} \
-                          versions:commit
-                    '''
+
+                    def pom = readMavenPom file: 'pom.xml'
+                    def parts = pom.version.tokenize('.')
+                    def major = parts[0]
+                    def minor = parts[1]
+                    def patch = parts[2].toInteger() + 1
+                    def newVersion = "${major}.${minor}.${patch}"
+
+                    echo "🆕 New version: ${newVersion}"
+
+                    bat "mvn versions:set -DnewVersion=${newVersion} versions:commit"
+
                     def matcher = readFile('pom.xml') =~ '<version>(.+)</version>'
                     if (!matcher) {
                         error '❌ Version not found in pom.xml!'
@@ -50,15 +58,15 @@ pipeline {
             }
         }
 
-        stage('Build & Pubat Docker Image') {
+        stage('Build & Push Docker Image') {
             steps {
                 script {
-                    echo '🐳 Building and pubating Docker image to ECR...'
+                    echo '🐳 Building and pushing Docker image to ECR...'
                     withCredentials([usernamePassword(credentialsId: 'aws-ecr', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
                         bat """
                             docker build -t ${env.IMAGE_REPO}:${env.IMAGE_NAME} .
-                            echo "$PASS" | docker login -u "$USER" --password-stdin ${env.ECR_REPO_URL}
-                            docker pubat ${env.IMAGE_REPO}:${env.IMAGE_NAME}
+                            echo %PASS% | docker login -u %USER% --password-stdin ${env.ECR_REPO_URL}
+                            docker push ${env.IMAGE_REPO}:${env.IMAGE_NAME}
                             docker logout ${env.ECR_REPO_URL}
                         """
                     }
@@ -70,13 +78,13 @@ pipeline {
             steps {
                 script {
                     def ec2Instance = "${SERVER_INSTANCE_USER}@${SERVER_INSTANCE_IP}"
-                    def deployCmd = "babat /home/ubuntu/web-deploy.bat ${env.IMAGE_NAME}"
+                    def deployCmd = "web-deploy.bat ${env.IMAGE_NAME}"
 
-                    sbatagent(['web-server-key']) {
+                    sshagent(['web-server-key']) {
                         echo '🚀 Deploying to EC2...'
                         bat """
-                            scp web-deploy.bat docker-compose.yaml ${ec2Instance}:/home/ubuntu/
-                            sbat ${ec2Instance} '${deployCmd}'
+                            pscp web-deploy.bat docker-compose.yaml ${ec2Instance}:/home/ubuntu/
+                            plink ${ec2Instance} "${deployCmd}"
                         """
                     }
                 }
@@ -93,7 +101,7 @@ pipeline {
                             git remote set-url origin https://${GITHUB_TOKEN}@${env.GIT_REPO_URL}
                             git add .
                             git commit -m "ci: version bump"
-                            git pubat origin HEAD:main
+                            git push origin HEAD:main
                         """
                     }
                 }
