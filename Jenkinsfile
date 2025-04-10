@@ -27,7 +27,7 @@ pipeline {
             steps {
                 script {
                     echo '🔧 Incrementing app version...'
-                    sh '''
+                    bat '''
                         mvn build-helper:parse-version versions:set \
                           -DnewVersion=\\${parsedVersion.majorVersion}.\\${parsedVersion.minorVersion}.\\${parsedVersion.nextIncrementalVersion} \
                           versions:commit
@@ -46,19 +46,19 @@ pipeline {
         stage('Build App') {
             steps {
                 echo '🏗️ Building the application...'
-                sh 'mvn clean package -DskipTests'
+                bat 'mvn clean package -DskipTests'
             }
         }
 
-        stage('Build & Push Docker Image') {
+        stage('Build & Pubat Docker Image') {
             steps {
                 script {
-                    echo '🐳 Building and pushing Docker image to ECR...'
+                    echo '🐳 Building and pubating Docker image to ECR...'
                     withCredentials([usernamePassword(credentialsId: 'aws-ecr', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
-                        sh """
+                        bat """
                             docker build -t ${env.IMAGE_REPO}:${env.IMAGE_NAME} .
                             echo "$PASS" | docker login -u "$USER" --password-stdin ${env.ECR_REPO_URL}
-                            docker push ${env.IMAGE_REPO}:${env.IMAGE_NAME}
+                            docker pubat ${env.IMAGE_REPO}:${env.IMAGE_NAME}
                             docker logout ${env.ECR_REPO_URL}
                         """
                     }
@@ -70,13 +70,13 @@ pipeline {
             steps {
                 script {
                     def ec2Instance = "${SERVER_INSTANCE_USER}@${SERVER_INSTANCE_IP}"
-                    def deployCmd = "bash /home/ubuntu/web-deploy.sh ${env.IMAGE_NAME}"
+                    def deployCmd = "babat /home/ubuntu/web-deploy.bat ${env.IMAGE_NAME}"
 
-                    sshagent(['web-server-key']) {
+                    sbatagent(['web-server-key']) {
                         echo '🚀 Deploying to EC2...'
-                        sh """
-                            scp web-deploy.sh docker-compose.yaml ${ec2Instance}:/home/ubuntu/
-                            ssh ${ec2Instance} '${deployCmd}'
+                        bat """
+                            scp web-deploy.bat docker-compose.yaml ${ec2Instance}:/home/ubuntu/
+                            sbat ${ec2Instance} '${deployCmd}'
                         """
                     }
                 }
@@ -87,13 +87,13 @@ pipeline {
             steps {
                 script {
                     withCredentials([string(credentialsId: 'GithubTokenSimple', variable: 'GITHUB_TOKEN')]) {
-                        sh """
+                        bat """
                             git config user.email "jenkins@example.com"
                             git config user.name "Jenkins"
                             git remote set-url origin https://${GITHUB_TOKEN}@${env.GIT_REPO_URL}
                             git add .
                             git commit -m "ci: version bump"
-                            git push origin HEAD:main
+                            git pubat origin HEAD:main
                         """
                     }
                 }
